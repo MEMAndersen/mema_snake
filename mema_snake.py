@@ -1,8 +1,8 @@
 import sys
 import pygame
 import random
-import numpy as np
 import math
+import numpy as np
 
 pygame.init()
 
@@ -14,29 +14,28 @@ col = {"black": (0, 0, 0),
 
 size = width, height = 640, 480
 block_size = 10
-grid_size_x = int(width / block_size) - 1
-grid_size_y = int(height / block_size) - 1
-run = True
-directions = ('up', 'left', 'down', 'right')
-valid_pos = [(5, 5)]
+grid_size_x = int(width / block_size)
+grid_size_y = int(height / block_size)
 
 screen = pygame.display.set_mode(size)
 
 
 class Entity:
     def __init__(self, grid_x, grid_y, size_x, size_y):
-        self.x = grid_x * size_x
-        self.y = grid_y * size_x
-        self.grid_x = grid_x
-        self.grid_y = grid_y
+        x = grid_x * size_x
+        y = grid_y * size_x
         self.size_x = size_x
         self.size_y = size_y
         self.col = col["white"]
 
         # used for collision
-        self.rect = pygame.Rect((self.x, self.y), (self.size_x, self.size_y))
+        self.rect = pygame.Rect((x, y), (self.size_x, self.size_y))
         self.snap_to_grid()
-        self.length = 1
+
+    def get_grid_pos(self):
+        grid_x = int(math.floor(self.rect.x / self.size_x))
+        grid_y = int(math.floor(self.rect.y / self.size_y))
+        return grid_x, grid_y
 
     def snap_to_grid(self):
         dx = math.floor(self.rect.centerx / block_size)
@@ -46,10 +45,11 @@ class Entity:
 
 class SnakePart(Entity):
 
-    def __init__(self, grid_x, grid_y, part_dir, head=False):
+    def __init__(self, grid_x, grid_y, part_dir, head=False, tail=False):
         Entity.__init__(self, grid_x, grid_y, block_size, block_size)
         self.part_dir = part_dir
         self.head = head
+        self.tail = False
         self.previous_dir = part_dir
 
     def draw(self):
@@ -86,13 +86,26 @@ class Snake:
     def __init__(self):
 
         # movement
-        self.move_delay = 400
+        self.move_delay = 100
         self.time_since_move = 0
+
+        #
+        self.score = 0
+
+        #
+        self.growing = False
 
         self.snake_parts = [SnakePart(5, 5, 'left', head=True),
                             SnakePart(6, 5, 'left'),
                             SnakePart(7, 5, 'left'),
-                            SnakePart(8, 5, 'left')]
+                            SnakePart(8, 5, 'left'),
+                            SnakePart(9, 5, 'left'),
+                            SnakePart(10, 5, 'left'),
+                            SnakePart(11, 5, 'left'),
+                            SnakePart(12, 5, 'left'),
+                            SnakePart(13, 5, 'left'),
+                            SnakePart(14, 5, 'left'),
+                            SnakePart(15, 5, 'left', tail=True)]
 
     def draw(self):
         for snake_part in self.snake_parts:
@@ -111,7 +124,7 @@ class Snake:
             self.snake_parts[0].part_dir = 'right'
 
     def update_snake_body_dir(self):
-        for i in range(len(self.snake_parts)-1, 0, -1):
+        for i in range(len(self.snake_parts) - 1, 0, -1):
             self.snake_parts[i].part_dir = self.snake_parts[i - 1].part_dir
 
     def move(self, dt):
@@ -127,10 +140,27 @@ class Snake:
                 snake_part.move()
             self.update_snake_body_dir()
 
-    def collision(self):
-        for entity in entities[entities != self]:
-            if self.rect.colliderect(entity.rect):
-                self.food += 1
+    def get_pos(self):
+        blocked_pos = []
+        for snake_part in self.snake_parts:
+            blocked_pos.append((snake_part.get_grid_pos()))
+        return blocked_pos
+
+    def collision_self(self):
+        snake_head = self.snake_parts[0]
+        for snake_part in self.snake_parts[1:]:
+            if snake_head.rect.colliderect(snake_part.rect):
+                return False
+        return True
+
+    def collision_food(self, food):
+        snake_head = self.snake_parts[0]
+        if snake_head.rect.colliderect(food.rect):
+            self.growing = True
+            food.update_pos(get_valid_pos(self))
+
+    def grow(self):
+        self.snake_parts.append()
 
 
 class Food(Entity):
@@ -141,11 +171,18 @@ class Food(Entity):
     def draw(self):
         pygame.draw.circle(screen, self.col, self.rect.center, math.floor(block_size / 2))
 
+    def update_pos(self, valid_pos):
+        grid_x, grid_y = random.choice(valid_pos)
+        x = grid_x * self.size_x
+        y = grid_y * self.size_y
+        self.rect = pygame.Rect((x, y), (self.size_x, self.size_y))
+        self.snap_to_grid()
+
     def move(self, dt):
         pass
 
 
-def draw_entities():
+def draw_entities(snake, food):
     snake.draw()
     food.draw()
 
@@ -157,38 +194,43 @@ def draw_grid():
         pygame.draw.line(screen, col["dark_grey"], (0, block_size * row), (width, block_size * row), 1)
 
 
+def get_valid_pos(snake_obj):
+    all_pos = [(i, j) for i in range(grid_size_x) for j in range(grid_size_y)]
+    blocked_pos = snake_obj.get_pos()
+    for pos in blocked_pos:
+        all_pos.remove(pos)
+    return all_pos
+
+
 def game_loop():
+    snake = Snake()
+    grid_pos = get_valid_pos(snake)
+    food = Food(grid_pos)
+    dt = 0
+    run = True
     while run:
 
-        dt = clock.tick(60)
         screen.fill((0, 0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
 
-        # Move snake
+        # Move snake and get valid pos
         snake.move(dt)
+
+        # Collision
+        run = snake.collision_self()
+        snake.collision_food(food)
 
         # Draw
         draw_grid()
-        draw_entities()
+        draw_entities(snake, food)
         pygame.display.update()
 
+        # Update clock
+        dt = clock.tick(30)
+        print(clock.get_fps())
+
+    print('game over')
 
 if __name__ == '__main__':
-    snake = Snake()
-    food = Food(valid_pos)
     game_loop()
-
-"""
-
-
-    ballrect = ballrect.move(speed)
-    if ballrect.left < 0 or ballrect.right > width:
-        speed[0] = -speed[0]
-    if ballrect.top < 0 or ballrect.bottom > height:
-        speed[1] = -speed[1]
-
-    screen.fill(black)
-    screen.blit(ball, ballrect)
-    pygame.display.flip()
-"""
