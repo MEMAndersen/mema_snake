@@ -2,7 +2,7 @@ import sys
 import pygame
 import random
 import math
-import numpy as np
+import copy
 
 pygame.init()
 
@@ -10,10 +10,10 @@ clock = pygame.time.Clock()
 
 col = {"black": (0, 0, 0),
        "white": (255, 255, 255),
-       "dark_grey": (50, 50, 50)}
+       "dark_grey": (25, 25, 25)}
 
 size = width, height = 640, 480
-block_size = 10
+block_size = 20
 grid_size_x = int(width / block_size)
 grid_size_y = int(height / block_size)
 
@@ -88,24 +88,18 @@ class Snake:
         # movement
         self.move_delay = 100
         self.time_since_move = 0
+        self.level_decrement = 10
 
         #
+        self.level = 1
         self.score = 0
+        self.food_eaten = 0
 
         #
         self.growing = False
 
         self.snake_parts = [SnakePart(5, 5, 'left', head=True),
-                            SnakePart(6, 5, 'left'),
-                            SnakePart(7, 5, 'left'),
-                            SnakePart(8, 5, 'left'),
-                            SnakePart(9, 5, 'left'),
-                            SnakePart(10, 5, 'left'),
-                            SnakePart(11, 5, 'left'),
-                            SnakePart(12, 5, 'left'),
-                            SnakePart(13, 5, 'left'),
-                            SnakePart(14, 5, 'left'),
-                            SnakePart(15, 5, 'left', tail=True)]
+                            SnakePart(6, 5, 'left', tail=True)]
 
     def draw(self):
         for snake_part in self.snake_parts:
@@ -133,11 +127,20 @@ class Snake:
 
         self.time_since_move += dt
         if self.time_since_move >= self.move_delay:
+
+            # Get last snake_part to use if growing
+            new_tail = copy.copy(self.snake_parts[-1])
+
             # resetting time delay and moves
             self.time_since_move -= self.move_delay
 
             for snake_part in self.snake_parts:
                 snake_part.move()
+
+            if self.growing:
+                self.snake_parts.append(new_tail)
+                self.growing = False
+
             self.update_snake_body_dir()
 
     def get_pos(self):
@@ -158,6 +161,13 @@ class Snake:
         if snake_head.rect.colliderect(food.rect):
             self.growing = True
             food.update_pos(get_valid_pos(self))
+            self.score += self.level
+            self.food_eaten += 1
+
+        if self.food_eaten % 10 == 0 and self.level != 9 and self.food_eaten != 0:
+            self.level += 1
+            self.food_eaten = 0
+            self.move_delay -= self.level_decrement
 
     def grow(self):
         self.snake_parts.append()
@@ -202,6 +212,10 @@ def get_valid_pos(snake_obj):
     return all_pos
 
 
+def print_fps():
+    pass
+
+
 def game_loop():
     snake = Snake()
     grid_pos = get_valid_pos(snake)
@@ -211,8 +225,11 @@ def game_loop():
     while run:
 
         screen.fill((0, 0, 0))
+        pygame.display.set_caption("score: " + str(int(snake.score)) + "  level: " + str(int(snake.level)))
+
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: sys.exit()
+            if event.type == pygame.QUIT:
+                sys.exit()
 
         # Move snake and get valid pos
         snake.move(dt)
@@ -228,9 +245,9 @@ def game_loop():
 
         # Update clock
         dt = clock.tick(30)
-        print(clock.get_fps())
 
     print('game over')
+
 
 if __name__ == '__main__':
     game_loop()
