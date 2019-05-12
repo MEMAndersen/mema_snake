@@ -6,6 +6,10 @@ import copy
 
 pygame.init()
 
+# Init fonts
+title_font = pygame.font.SysFont('comicsansms', 50)
+under_title_font = pygame.font.SysFont('comicsansms', 20)
+
 clock = pygame.time.Clock()
 
 col = {"black": (0, 0, 0),
@@ -18,6 +22,8 @@ grid_size_x = int(width / block_size)
 grid_size_y = int(height / block_size)
 
 screen = pygame.display.set_mode(size)
+
+state = 'main_menu'
 
 
 class Entity:
@@ -216,6 +222,42 @@ def print_fps():
     pass
 
 
+def render_blit_text(font_obj, text, center_x, center_y):
+    text_size = font_obj.size(text)
+    text_render = font_obj.render(text, True, col['white'])
+    screen.blit(text_render, [center_x - text_size[0] / 2, center_y - text_size[1] / 2])
+
+
+def print_game_over_screen(level, score):
+    render_blit_text(title_font, 'GAME OVER', width / 2, int(height / 3))
+    render_blit_text(title_font, 'Level reached: ' + str(level), width / 2, int(height / 3 + 50))
+    render_blit_text(title_font, 'Score: ' + str(score), width / 2, int(height / 3 + 100))
+    render_blit_text(under_title_font, 'Press any key to return to main menu', width / 2, int(height / 3 + 140))
+    pygame.display.update()
+
+
+def main_menu_loop():
+    main_menu = True
+    while main_menu:
+        screen.fill((0, 0, 0))
+        pygame.display.set_caption('Snake')
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                return "game"
+
+        # Write text to main menu.
+        render_blit_text(title_font, 'Snake', width / 2, int(height / 3))
+        render_blit_text(under_title_font, 'by Mads Emil Møller Andersen (MEMA)', width / 2, int(height / 3) + 40)
+        render_blit_text(under_title_font, 'Control the snake using the arrowkeys', width / 2, int(height / 2) + 40)
+        render_blit_text(under_title_font, 'Press any button to start the game', width / 2, int(height / 2) + 60)
+
+        #draw_grid()
+        pygame.display.update()
+
+
 def game_loop():
     snake = Snake()
     grid_pos = get_valid_pos(snake)
@@ -244,10 +286,26 @@ def game_loop():
         pygame.display.update()
 
         # Update clock
-        dt = clock.tick(30)
+        dt = clock.tick(60)
 
-    print('game over')
+    print_game_over_screen(snake.level, snake.score)
+    pygame.time.delay(5000)
+    pygame.event.clear(pygame.KEYDOWN)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                return 'main_menu'
 
 
 if __name__ == '__main__':
-    game_loop()
+
+    while True:
+        if state == "main_menu":
+            state = main_menu_loop()
+        elif state == 'game':
+            state = game_loop()
+        else:
+            break
