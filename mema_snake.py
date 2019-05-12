@@ -59,7 +59,57 @@ class SnakePart(Entity):
         self.previous_dir = part_dir
 
     def draw(self):
+        self.draw_body()
+        self.draw_eyes()
+
+    def draw_body(self):
         pygame.draw.rect(screen, self.col, self.rect)
+
+        lx = self.rect.x
+        rx = lx + self.size_x
+        ty = self.rect.y
+        by = ty + self.size_y
+
+        trim = int(block_size / 5)
+
+        if self.part_dir == 'up':
+            for i in range(3):
+                offset = trim * (i + 1)
+                pygame.draw.line(screen, col["dark_grey"], (lx, ty + offset), (rx, ty + offset))
+        elif self.part_dir == 'left':
+            for i in range(3):
+                offset = trim * (i + 1)
+                pygame.draw.line(screen, col["dark_grey"], (lx + offset, ty), (lx + offset, by))
+        elif self.part_dir == 'down':
+            for i in range(3):
+                offset = trim * (i + 1)
+                pygame.draw.line(screen, col["dark_grey"], (rx , by - offset), (lx, by - offset))
+        elif self.part_dir == 'right':
+            for i in range(3):
+                offset = trim * (i + 1)
+                pygame.draw.line(screen, col["dark_grey"], (rx - offset, by), (rx - offset, ty))
+
+    def draw_eyes(self):
+        cx = self.rect.centerx
+        cy = self.rect.centery
+        offset = int(block_size / 5)
+
+        if self.head is True:
+            if self.part_dir == 'up':
+                pos1 = (cx - offset, cy - offset)
+                pos2 = (cx + offset, cy - offset)
+            elif self.part_dir == 'left':
+                pos1 = (cx - offset, cy - offset)
+                pos2 = (cx - offset, cy + offset)
+            elif self.part_dir == 'down':
+                pos1 = (cx + offset, cy + offset)
+                pos2 = (cx - offset, cy + offset)
+            elif self.part_dir == 'right':
+                pos1 = (cx + offset, cy + offset)
+                pos2 = (cx + offset, cy - offset)
+
+            pygame.draw.circle(screen, col["dark_grey"], pos1, 1)
+            pygame.draw.circle(screen, col["dark_grey"], pos2, 1)
 
     def move(self):
 
@@ -254,7 +304,7 @@ def main_menu_loop():
         render_blit_text(under_title_font, 'Control the snake using the arrowkeys', width / 2, int(height / 2) + 40)
         render_blit_text(under_title_font, 'Press any button to start the game', width / 2, int(height / 2) + 60)
 
-        #draw_grid()
+        # draw_grid()
         pygame.display.update()
 
 
