@@ -14,7 +14,8 @@ clock = pygame.time.Clock()
 
 col = {"black": (0, 0, 0),
        "white": (255, 255, 255),
-       "dark_grey": (25, 25, 25)}
+       "dark_grey": (25, 25, 25),
+       "light_grey": (155, 155, 155)}
 
 size = width, height = 640, 480
 block_size = 20
@@ -83,7 +84,7 @@ class SnakePart(Entity):
         elif self.part_dir == 'down':
             for i in range(3):
                 offset = trim * (i + 1)
-                pygame.draw.line(screen, col["dark_grey"], (rx , by - offset), (lx, by - offset))
+                pygame.draw.line(screen, col["dark_grey"], (rx, by - offset), (lx, by - offset))
         elif self.part_dir == 'right':
             for i in range(3):
                 offset = trim * (i + 1)
@@ -274,7 +275,7 @@ def print_fps():
 
 def render_blit_text(font_obj, text, center_x, center_y):
     text_size = font_obj.size(text)
-    text_render = font_obj.render(text, True, col['white'])
+    text_render = font_obj.render(text, True, col['light_grey'])
     screen.blit(text_render, [center_x - text_size[0] / 2, center_y - text_size[1] / 2])
 
 
