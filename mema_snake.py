@@ -163,24 +163,23 @@ class Snake:
         for snake_part in self.snake_parts:
             snake_part.draw()
 
-    def update_snake_head_dir(self):
+    def update_snake_head_dir(self, key: int):
         # Change direction of snake head by user input
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP] and self.snake_parts[0].previous_dir != "down":
+        if key == pygame.K_UP and self.snake_parts[0].previous_dir != "down":
             self.snake_parts[0].part_dir = "up"
-        if keys[pygame.K_LEFT] and self.snake_parts[0].previous_dir != "right":
+        elif key == pygame.K_LEFT and self.snake_parts[0].previous_dir != "right":
             self.snake_parts[0].part_dir = "left"
-        if keys[pygame.K_DOWN] and self.snake_parts[0].previous_dir != "up":
+        elif key == pygame.K_DOWN and self.snake_parts[0].previous_dir != "up":
             self.snake_parts[0].part_dir = "down"
-        if keys[pygame.K_RIGHT] and self.snake_parts[0].previous_dir != "left":
+        elif key == pygame.K_RIGHT and self.snake_parts[0].previous_dir != "left":
             self.snake_parts[0].part_dir = "right"
 
     def update_snake_body_dir(self):
         for i in range(len(self.snake_parts) - 1, 0, -1):
             self.snake_parts[i].part_dir = self.snake_parts[i - 1].part_dir
 
-    def move(self, dt):
-        self.update_snake_head_dir()
+    def move(self, dt) -> bool:
+        "Returns true if moved, otherwise false"
 
         self.time_since_move += dt
         if self.time_since_move >= self.move_delay:
@@ -198,6 +197,8 @@ class Snake:
                 self.growing = False
 
             self.update_snake_body_dir()
+            return True
+        return False
 
     def get_pos(self):
         blocked_pos = []
@@ -334,14 +335,18 @@ def game_loop():
     food = Food(grid_pos)
     dt = 0
     run = True
+
     while run:
         screen.fill((0, 0, 0))
         pygame.display.set_caption("score: " + str(int(snake.score)) + "  level: " + str(int(snake.level)))
 
+        # Handle input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
 
+            if event.type == pygame.KEYDOWN:
+                snake.update_snake_head_dir(event.key)
         # Move snake and get valid pos
         snake.move(dt)
 
