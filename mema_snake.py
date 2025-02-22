@@ -7,15 +7,17 @@ import copy
 pygame.init()
 
 # Init fonts
-title_font = pygame.font.SysFont('comicsansms', 50)
-under_title_font = pygame.font.SysFont('comicsansms', 20)
+title_font = pygame.font.SysFont("comicsansms", 50)
+under_title_font = pygame.font.SysFont("comicsansms", 20)
 
 clock = pygame.time.Clock()
 
-col = {"black": (0, 0, 0),
-       "white": (255, 255, 255),
-       "dark_grey": (25, 25, 25),
-       "light_grey": (155, 155, 155)}
+col = {
+    "black": (0, 0, 0),
+    "white": (255, 255, 255),
+    "dark_grey": (25, 25, 25),
+    "light_grey": (155, 155, 155),
+}
 
 size = width, height = 640, 480
 block_size = 20
@@ -24,7 +26,7 @@ grid_size_y = int(height / block_size)
 
 screen = pygame.display.set_mode(size)
 
-state = 'main_menu'
+state = "main_menu"
 
 
 class Entity:
@@ -51,7 +53,6 @@ class Entity:
 
 
 class SnakePart(Entity):
-
     def __init__(self, grid_x, grid_y, part_dir, head=False, tail=False):
         Entity.__init__(self, grid_x, grid_y, block_size, block_size)
         self.part_dir = part_dir
@@ -73,19 +74,19 @@ class SnakePart(Entity):
 
         trim = int(block_size / 5)
 
-        if self.part_dir == 'up':
+        if self.part_dir == "up":
             for i in range(3):
                 offset = trim * (i + 1)
                 pygame.draw.line(screen, col["dark_grey"], (lx, ty + offset), (rx, ty + offset))
-        elif self.part_dir == 'left':
+        elif self.part_dir == "left":
             for i in range(3):
                 offset = trim * (i + 1)
                 pygame.draw.line(screen, col["dark_grey"], (lx + offset, ty), (lx + offset, by))
-        elif self.part_dir == 'down':
+        elif self.part_dir == "down":
             for i in range(3):
                 offset = trim * (i + 1)
                 pygame.draw.line(screen, col["dark_grey"], (rx, by - offset), (lx, by - offset))
-        elif self.part_dir == 'right':
+        elif self.part_dir == "right":
             for i in range(3):
                 offset = trim * (i + 1)
                 pygame.draw.line(screen, col["dark_grey"], (rx - offset, by), (rx - offset, ty))
@@ -96,16 +97,16 @@ class SnakePart(Entity):
         offset = int(block_size / 5)
 
         if self.head is True:
-            if self.part_dir == 'up':
+            if self.part_dir == "up":
                 pos1 = (cx - offset, cy - offset)
                 pos2 = (cx + offset, cy - offset)
-            elif self.part_dir == 'left':
+            elif self.part_dir == "left":
                 pos1 = (cx - offset, cy - offset)
                 pos2 = (cx - offset, cy + offset)
-            elif self.part_dir == 'down':
+            elif self.part_dir == "down":
                 pos1 = (cx + offset, cy + offset)
                 pos2 = (cx - offset, cy + offset)
-            elif self.part_dir == 'right':
+            elif self.part_dir == "right":
                 pos1 = (cx + offset, cy + offset)
                 pos2 = (cx + offset, cy - offset)
 
@@ -113,14 +114,13 @@ class SnakePart(Entity):
             pygame.draw.circle(screen, col["dark_grey"], pos2, 1)
 
     def move(self):
-
-        if self.part_dir == 'up':
+        if self.part_dir == "up":
             self.rect = self.rect.move(0, -block_size)
-        elif self.part_dir == 'left':
+        elif self.part_dir == "left":
             self.rect = self.rect.move(-block_size, 0)
-        elif self.part_dir == 'down':
+        elif self.part_dir == "down":
             self.rect = self.rect.move(0, block_size)
-        elif self.part_dir == 'right':
+        elif self.part_dir == "right":
             self.rect = self.rect.move(block_size, 0)
 
         self.previous_dir = self.part_dir
@@ -141,7 +141,6 @@ class SnakePart(Entity):
 
 class Snake:
     def __init__(self):
-
         # movement
         self.move_delay = 100
         self.time_since_move = 0
@@ -155,8 +154,10 @@ class Snake:
         #
         self.growing = False
 
-        self.snake_parts = [SnakePart(5, 5, 'left', head=True),
-                            SnakePart(6, 5, 'left', tail=True)]
+        self.snake_parts = [
+            SnakePart(5, 5, "left", head=True),
+            SnakePart(6, 5, "left", tail=True),
+        ]
 
     def draw(self):
         for snake_part in self.snake_parts:
@@ -165,26 +166,24 @@ class Snake:
     def update_snake_head_dir(self):
         # Change direction of snake head by user input
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP] and self.snake_parts[0].previous_dir != 'down':
-            self.snake_parts[0].part_dir = 'up'
-        if keys[pygame.K_LEFT] and self.snake_parts[0].previous_dir != 'right':
-            self.snake_parts[0].part_dir = 'left'
-        if keys[pygame.K_DOWN] and self.snake_parts[0].previous_dir != 'up':
-            self.snake_parts[0].part_dir = 'down'
-        if keys[pygame.K_RIGHT] and self.snake_parts[0].previous_dir != 'left':
-            self.snake_parts[0].part_dir = 'right'
+        if keys[pygame.K_UP] and self.snake_parts[0].previous_dir != "down":
+            self.snake_parts[0].part_dir = "up"
+        if keys[pygame.K_LEFT] and self.snake_parts[0].previous_dir != "right":
+            self.snake_parts[0].part_dir = "left"
+        if keys[pygame.K_DOWN] and self.snake_parts[0].previous_dir != "up":
+            self.snake_parts[0].part_dir = "down"
+        if keys[pygame.K_RIGHT] and self.snake_parts[0].previous_dir != "left":
+            self.snake_parts[0].part_dir = "right"
 
     def update_snake_body_dir(self):
         for i in range(len(self.snake_parts) - 1, 0, -1):
             self.snake_parts[i].part_dir = self.snake_parts[i - 1].part_dir
 
     def move(self, dt):
-
         self.update_snake_head_dir()
 
         self.time_since_move += dt
         if self.time_since_move >= self.move_delay:
-
             # Get last snake_part to use if growing
             new_tail = copy.copy(self.snake_parts[-1])
 
@@ -256,9 +255,21 @@ def draw_entities(snake, food):
 
 def draw_grid():
     for column in range(int(width / block_size + 1)):
-        pygame.draw.line(screen, col["dark_grey"], (block_size * column, 0), (block_size * column, height), 1)
+        pygame.draw.line(
+            screen,
+            col["dark_grey"],
+            (block_size * column, 0),
+            (block_size * column, height),
+            1,
+        )
     for row in range(int(height / block_size + 1)):
-        pygame.draw.line(screen, col["dark_grey"], (0, block_size * row), (width, block_size * row), 1)
+        pygame.draw.line(
+            screen,
+            col["dark_grey"],
+            (0, block_size * row),
+            (width, block_size * row),
+            1,
+        )
 
 
 def get_valid_pos(snake_obj):
@@ -275,15 +286,17 @@ def print_fps():
 
 def render_blit_text(font_obj, text, center_x, center_y):
     text_size = font_obj.size(text)
-    text_render = font_obj.render(text, True, col['light_grey'])
+    text_render = font_obj.render(text, True, col["light_grey"])
     screen.blit(text_render, [center_x - text_size[0] / 2, center_y - text_size[1] / 2])
 
 
 def print_game_over_screen(level, score):
-    render_blit_text(title_font, 'GAME OVER', width / 2, int(height / 3))
-    render_blit_text(title_font, 'Level reached: ' + str(level), width / 2, int(height / 3 + 50))
-    render_blit_text(title_font, 'Score: ' + str(score), width / 2, int(height / 3 + 100))
-    render_blit_text(under_title_font, 'Press any key to return to main menu', width / 2, int(height / 3 + 140))
+    render_blit_text(title_font, "GAME OVER", width / 2, int(height / 3))
+    render_blit_text(title_font, "Level reached: " + str(level), width / 2, int(height / 3 + 50))
+    render_blit_text(title_font, "Score: " + str(score), width / 2, int(height / 3 + 100))
+    render_blit_text(
+        under_title_font, "Press any key to return to main menu", width / 2, int(height / 3 + 140)
+    )
     pygame.display.update()
 
 
@@ -291,7 +304,7 @@ def main_menu_loop():
     main_menu = True
     while main_menu:
         screen.fill((0, 0, 0))
-        pygame.display.set_caption('Snake')
+        pygame.display.set_caption("Snake")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -300,10 +313,16 @@ def main_menu_loop():
                 return "game"
 
         # Write text to main menu.
-        render_blit_text(title_font, 'Snake', width / 2, int(height / 3))
-        render_blit_text(under_title_font, 'by Mads Emil Møller Andersen (MEMA)', width / 2, int(height / 3) + 40)
-        render_blit_text(under_title_font, 'Control the snake using the arrowkeys', width / 2, int(height / 2) + 40)
-        render_blit_text(under_title_font, 'Press any button to start the game', width / 2, int(height / 2) + 60)
+        render_blit_text(title_font, "Snake", width / 2, int(height / 3))
+        render_blit_text(
+            under_title_font, "by Mads Emil Møller Andersen (MEMA)", width / 2, int(height / 3) + 40
+        )
+        render_blit_text(
+            under_title_font, "Control the snake using the arrowkeys", width / 2, int(height / 2) + 40
+        )
+        render_blit_text(
+            under_title_font, "Press any button to start the game", width / 2, int(height / 2) + 60
+        )
 
         # draw_grid()
         pygame.display.update()
@@ -316,7 +335,6 @@ def game_loop():
     dt = 0
     run = True
     while run:
-
         screen.fill((0, 0, 0))
         pygame.display.set_caption("score: " + str(int(snake.score)) + "  level: " + str(int(snake.level)))
 
@@ -348,15 +366,14 @@ def game_loop():
             if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                return 'main_menu'
+                return "main_menu"
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     while True:
         if state == "main_menu":
             state = main_menu_loop()
-        elif state == 'game':
+        elif state == "game":
             state = game_loop()
         else:
             break

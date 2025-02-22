@@ -1,0 +1,20 @@
+[project]
+name = "mema-snake"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pygame-ce~=2.5.3",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.7",
+]
+
+[tool.ruff]
+line-length = 108
+
+[tool.ruff.lint]
+extend-select = ["E501"]
